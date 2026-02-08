@@ -1,0 +1,46 @@
+body {
+	background: #666666;
+	color: black;
+	padding:16px;
+	margin:0;
+}
+h2 {
+	width: 100%;
+	text-align:center;
+}
+h3 {
+	width: 100%;
+	text-align:center;
+}
+h4 {
+	width: 100%;
+	text-align:center;
+}
+.div {
+	width:300px;
+	margin:auto;
+	padding:16px;
+	background-color:#B6B6B6;
+}
+div.mycontainer {
+  width:100%;
+  overflow:auto;
+}
+div.mycontainer div {
+  width:33%;  
+  float:left;
+}
+table {
+	width: 65%;
+	background-color: #666;
+}
+th, td {
+	text-align: left;
+	padding: 8px;
+}
+th {
+	background-color: #444;
+}
+tr:nth-child(even) {
+	background-color: #444;
+}
