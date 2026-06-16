@@ -8,9 +8,9 @@ error_reporting(E_ALL);
 
 // --- Database credentials ---
 $host = 'localhost';
-$db   = 'mysite';      //name of the sql db
+$db   = 'acc_db';      //name of the sql db
 $user = 'user';        //name of sql db user that has perms to acces the db
-$pass = 'pa$$ingby';    //password for the user
+$pass = 'passw0rd';    //password for the user
 $charset = 'utf8mb4';
 
 // --- PDO setup ---
