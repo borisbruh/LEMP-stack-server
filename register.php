@@ -42,10 +42,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
         $stmt->execute([$username, $email, $hash]);
 
-        echo "✅ User registered successfully. <a href='login.php'>Login</a>";
+        $message = "User registered successfully. Login below.";
 
         } catch (PDOException $e) {
-        echo "❌ Error: " . $e->getMessage();
+        echo "Error: " . $e->getMessage();
         }
     }
 }
