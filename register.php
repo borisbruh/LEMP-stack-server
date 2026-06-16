@@ -1,13 +1,14 @@
-<?php //register.php    the account registration page
+<?php //register.php    teh account craetion page
+
+session_start();
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// --- Database credentials ---
 $host = 'localhost';
-$db   = 'acc_db';      //name of the sql db
-$user = 'user';        //name of sql db user that has perms to acces the db
-$pass = 'passw0rd';    //password for the user
+$db   = 'acc_db';
+$user = 'user';
+$pass = 'passw0rd';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -21,26 +22,41 @@ try {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $email= trim($_POST['email']);
+    $username = $_POST['username'];
+    $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    if (!$email|| !$password) {
-        die("email and password required");
-    }
+    if (!$username || !$email || !$password) {
+            die("username, email and password required");
 
-    // 🔐 hash password properly
-    $hash = password_hash($password, PASSWORD_BCRYPT);
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = "Invalid email format";
 
-    try {
-        $stmt = $pdo->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-        $stmt->execute([$email, $hash]);
+    } else {
+    
+
+        // 🔐 hash password properly
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+
+        try {
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $email, $hash]);
 
         echo "✅ User registered successfully. <a href='login.php'>Login</a>";
 
-    } catch (PDOException $e) {
+        } catch (PDOException $e) {
         echo "❌ Error: " . $e->getMessage();
+        }
     }
 }
+
+
+if (isset($_SESSION['message'])) {
+        $message = $_SESSION['message'];
+        unset($_SESSION['message']);  // Remove the message from the session after displaying it
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -57,16 +73,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <form style="margin:auto;" method="POST" action="">
 
+        <label for="username">Username:</label><br>
+        <input type="username" name="username" placeholder="user5" required><br><br>
+
         <label for="email">Email:</label><br>
         <input type="email" name="email" placeholder="user@example.com" required><br><br>
 
         <label for="password">Password:</label><br>
-        <input type="password" name="password" placeholder="passw0rd" required><br><br>
+        <input type="password" name="password" placeholder="$ecure_passw0rd" required><br><br>
 
         <button style="margin:auto;" type="submit">Register</button>
 </form>
 
 <br>
+
+<?php if (!empty($message)) : ?>
+        <p style="color: <?= strpos($message, 'successful') !== false ? 'green' : 'red' ?>;">
+                <?= htmlspecialchars($message) ?>
+        </p>
+<?php endif; ?>
 
 <br><br>
 <a href="login.php">Login page</a>
