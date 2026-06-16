@@ -16,7 +16,7 @@ try {
     $stmt = $pdo->query('SELECT * FROM users');
     echo "<ul>";
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        echo "<li>ID: {$row['id']}, Name: {$row['name']}</li>";
+        echo "<li>ID: {$row['id']}, Username: {$row['username']}</li>";
     }
     echo "</ul>";
 
