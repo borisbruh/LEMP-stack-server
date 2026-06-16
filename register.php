@@ -39,13 +39,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $hash = password_hash($password, PASSWORD_BCRYPT);
 
         try {
-        $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-        $stmt->execute([$username, $email, $hash]);
-
-        $message = "User registered successfully. Login below.";
-
+            $stmt = $pdo->prepare(
+                "INSERT INTO users (username, email, password)
+                 VALUES (?, ?, ?)"
+            );
+        
+            $stmt->execute([$username, $email, $hash]);
+        
+            $message = "User registered successfully";
+        
         } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
+        
+            if ($e->errorInfo[1] == 1062) {
+        
+                if (str_contains($e->getMessage(), 'username')) {
+                    $message = "Username already exists";
+                }
+                elseif (str_contains($e->getMessage(), 'email')) {
+                    $message = "Email already exists";
+                }
+                else {
+                    $message = "Username or email already exists";
+                }
+        
+            } else {
+                $message = "Database error occurred";
+            }
         }
     }
 }
