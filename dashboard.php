@@ -34,7 +34,8 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit; // Stop further script execution
 }
 
-// Get the logged-in user's email from the session
+// Get the logged-in user's username & email from the session
+$username = $_SESSION['username'];
 $email = $_SESSION['email'];
 $id = $_SESSION['id'];
 ?>
@@ -42,237 +43,244 @@ $id = $_SESSION['id'];
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>Dashboard</title>
-	
-	<link rel="stylesheet" href="color.css">
-	
-	<style>
-	
+        <meta charset="UTF-8">
+        <title>Dashboard</title>
+
+        <link rel="stylesheet" href="color.css">
+
+        <style>
+
         /* Simple styling for the top-right user display and sign out button */
         .logout-btn {
-		background-color: #f44336; /* Red color for the sign-out button */
-		color: white;
-		padding: 10px 20px;
-		border: none;
-		cursor: pointer;
-		border-radius: 5px;
+                background-color: #f44336; /* Red color for the sign-out button */
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                cursor: pointer;
+                border-radius: 5px;
         }
         .logout-btn:hover {
-		background-color: #d32f2f; /* Darker red when hovered */
+                background-color: #d32f2f; /* Darker red when hovered */
         }
 
-	
-	</style>
+
+        </style>
 </head>
 <body>
-	<!-- Displaying the logged-in user's email at the top right -->
-	<div class="div" style="width:auto;min-width:200px;position: absolute; top: 0px; right: 0px">
-		<p>Logged in as: <br><strong><?= htmlspecialchars($email) ?></strong></p>
-		<button style="width:60%;margin-left:20%;margin-right:20%" class="logout-btn" onclick="confirmLogout()">Sign Out</button>
-	</div>
-	
-	<!-- Displaying the Admin Panel -->
-	<?php
-	// Check if the user is allowed to view the admin panel
+        <!-- Displaying the logged-in user's email at the top right -->
+        <div class="div" style="width:auto;min-width:200px;position: absolute; top: 0px; right: 0px">
+                <p>Welcome: <strong><?= htmlspecialchars($username) ?></strong></p>
+                <p>Logged in as: <br><strong><?= htmlspecialchars($email) ?></strong></p>
+                <button style="width:60%;margin-left:20%;margin-right:20%" class="logout-btn" onclick="confirmLogout()">Sign Out</button>
+        </div>
 
-	// Assuming $perms is set to the logged-in user's permission level
-	$loggedInUserPerms = $_SESSION['perms'];  // Adjust this based on how your session works
+        <!-- Displaying the Admin Panel -->
+        <?php
+        // Check if the user is allowed to view the admin panel
 
-	if ($loggedInUserPerms != 0) {
-	    // If the user doesn't have perms == 0, hide the admin panel
-	    echo '<div style="position: absolute; right: 32px; top: 50%;">You do not have permission to view the admin panel.</div>';
-	} else {
-	    // Admin Panel visible to users with perms == 0
-	?>
-	
-	    <div style="position: fixed; right: 16px; top: 25%; width: 35%; padding: 8px;background-color: #f5f5f5; border: 2px solid #000;">
-		<h3>Admin Panel</h3>
+        // Assuming $perms is set to the logged-in user's permission level
+        $loggedInUserPerms = $_SESSION['perms'];  // Adjust this based on how your session works
 
-		<?php
-		// Handle POST requests for adding, deleting, and editing rows
+        if ($loggedInUserPerms != 0) {
+            // If the user doesn't have perms == 0, hide the admin panel
+            echo '<div style="position: absolute; right: 32px; top: 50%;">You do not have permission to view the admin panel.</div>';
+        } else {
+            // Admin Panel visible to users with perms == 0
+        ?>
 
-		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-		    // Check what action is being performed
-		    if (isset($_POST['add_user'])) {
-			// Add a new user
-			$email = $_POST['email'];
-			$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-			$perms = $_POST['perms'];
-			$stmt = $pdo->prepare("INSERT INTO users (email, password, perms) VALUES (?, ?, ?)");
-			if ($stmt->execute([$email, $password, $perms])) {
-				echo "<p style='color: green;'>User added successfully!</p>";
-			} else {
-				echo "<p style='color: red;'>Failed to add user.</p>";
-			}
-		    }
+            <div style="position: fixed; right: 16px; top: 25%; width: 35%; padding: 8px;background-color: #f5f5f5; border: 2px solid #000;">
+                <h3>Admin Panel</h3>
 
-			if (isset($_POST['delete_user'])) {
-				// Get the user ID to delete
-				$user_id = $_POST['id'];
-				
-				if ($user_id == $id) {
-					echo "<p style='color: red;'>Cannot delete your own account ID: {$user_id}. Deletion failed.</p>";
-				} else {
+                <?php
+                // Handle POST requests for adding, deleting, and editing rows
 
-					// Prepare the DELETE query
-					$stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                    // Check what action is being performed
+                    if (isset($_POST['add_user'])) {
+                            // Add a new user
+                        $username = $_POST['username'];
+                        $email = $_POST['email'];
+                        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                        $perms = $_POST['perms'];
+                        $stmt = $pdo->prepare("INSERT INTO users (username, email, password, perms) VALUES (?, ?, ?, ?)");
+                        if ((!filter_var($email, FILTER_VALIDATE_EMAIL))) { 
+                                echo "<p style='color: red;'>Invalid email format, new user not added.";
+                    } elseif ($stmt->execute([$username, $email, $password, $perms])) {
+                                echo "<p style='color: green;'>User added successfully!</p>";
+                        } else {
+                                echo "<p style='color: red;'>Failed to add user.</p>";
+                        }
+                    }
 
-					// Execute the query
-					$stmt->execute([$user_id]);
+                        if (isset($_POST['delete_user'])) {
+                                // Get the user ID to delete
+                                $user_id = $_POST['id'];
 
-					// Check how many rows were affected
-					if ($stmt->rowCount() > 0) {
-						echo "<p style='color: green;'>User deleted successfully!</p>";
-					} else {
-						echo "<p style='color: red;'>No user found with ID {$user_id}. Deletion failed.</p>";
-					}
-				}
-			}
+                                if ($user_id == $id) {
+                                        echo "<p style='color: red;'>Cannot delete your own account ID: {$user_id}. Deletion failed.</p>";
+                                } else {
 
-			if (isset($_POST['edit_perms'])) {
-			
-				// Get the user ID and the new permissions
-				$user_id = $_POST['id'];
-				$new_perms = $_POST['perms'];
-				
-				if ($user_id == $id) {
-					echo "<p style='color: red;'>Cannot edit your own account ID: {$user_id}. Permissions not updated.</p>";
-				} else {
-				
-					// Prepare the UPDATE query
-					$stmt = $pdo->prepare("UPDATE users SET perms = ? WHERE id = ?");
+                                        // Prepare the DELETE query
+                                        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
 
-					// Execute the query
-					$stmt->execute([$new_perms, $user_id]);
+                                        // Execute the query
+                                        $stmt->execute([$user_id]);
 
-					// Check how many rows were affected
-					if ($stmt->rowCount() > 0) {
-						echo "<p style='color: green;'>Permissions updated successfully!</p>";
-					} else {
-						echo "<p style='color: red;'>No user found with ID: {$user_id}. Permissions not updated.</p>";
-					}
-				}
-			}
-		    
-		}
+                                        // Check how many rows were affected
+                                        if ($stmt->rowCount() > 0) {
+                                                echo "<p style='color: green;'>User deleted successfully!</p>";
+                                        } else {
+                                                echo "<p style='color: red;'>No user found with ID {$user_id}. Deletion failed.</p>";
+                                        }
+                                }
+                        }
 
-		// Display the form for adding a new user
-		?>
-		
-		<div class="mycontainer">
-		
-		<div>
-		
-			<h4>Add User</h4>
-			
-			<form method="POST">
-				<label for="email">Email:</labe><br>
-				<input type="email" name="email" placeholder="user@example.com" required><br><br>
-				<label for="password">Password:</labe><br>
-				<input type="password" name="password" placeholder="passw0rd" required><br><br>
-				<label for="perms">Permissions (0 or 1):</label><br>
-				<input type="number" name="perms" min="0" max="1" placeholder="1" required><br><br>
-				<button type="submit" name="add_user">Add User</button>
-			</form>
+                        if (isset($_POST['edit_perms'])) {
 
-		</div>
-		
-		<div>
-		
-			<h4>Delete User</h4>
-			
-			<form method="POST">
-				<label for="id">ID:</labe><br>
-				<input type="id" name="id" placeholder="2" required><br><br>
-				<button type="submit" name="delete_user">Delete User</button>
-			</form>
+                                // Get the user ID and the new permissions
+                                $user_id = $_POST['id'];
+                                $new_perms = $_POST['perms'];
 
-		</div>
-		
-		<div>
-		
-			<h4>Edit User Perms</h4>
-			
-			<form method="POST">
-				<label for="id">ID:</labe><br>
-				<input type="id" name="id" placeholder="2" required><br><br>
-				<label for="perms">Permissions (0 or 1):</label><br>
-				<input type="number" name="perms" min="0" max="1" placeholder="1" required><br><br>
-				<button type="submit" name="edit_perms">Edit User Perms</button>
-			</form>
+                                if ($user_id == $id) {
+                                        echo "<p style='color: red;'>Cannot edit your own account ID: {$user_id}. Permissions not updated.</p>";
+                                } else {
 
-		</div>
-		
-		</div> <!--mycontainer-->
-		
-	    </div>
-	    <?php
-	}
-	?>
+                                        // Prepare the UPDATE query
+                                        $stmt = $pdo->prepare("UPDATE users SET perms = ? WHERE id = ?");
 
-	<h2>Dashboard</h2>
-	    
+                                        // Execute the query
+                                        $stmt->execute([$new_perms, $user_id]);
 
-	
-	<?php
-	
+                                        // Check how many rows were affected
+                                        if ($stmt->rowCount() > 0) {
+                                                echo "<p style='color: green;'>Permissions updated successfully!</p>";
+                                        } else {
+                                                echo "<p style='color: red;'>No user found with ID: {$user_id}. Permissions not updated.</p>";
+                                        }
+                                }
+                        }
+                    
+                }
+
+                // Display the form for adding a new user
+                ?>
+
+                <div class="mycontainer">
+
+                <div>
+
+                        <h4>Add User</h4>
+
+                        <form method="POST">
+                                <label for="username">Username:</label><br>
+                                <input type="text" name="username" placeholder="user2" required><br><br>
+                                <label for="email">Email:</label><br>
+                                <input type="email" name="email" placeholder="user@example.com" required><br><br>
+                                <label for="password">Password:</label><br>
+                                <input type="password" name="password" placeholder="passw0rd" required><br><br>
+                                <label for="perms">Permissions (0 or 1):</label><br>
+                                <input type="number" name="perms" min="0" max="1" placeholder="1" required><br><br>
+                                <button type="submit" name="add_user">Add User</button>
+                        </form>
+
+                </div>
+
+                <div>
+
+                        <h4>Delete User</h4>
+
+                        <form method="POST">
+                                <label for="id">ID:</label><br>
+                                <input type="id" name="id" placeholder="2" required><br><br>
+                                <button type="submit" name="delete_user">Delete User</button>
+                        </form>
+
+                </div>
+
+                <div>
+
+                        <h4>Edit User Perms</h4>
+
+                        <form method="POST">
+                                <label for="id">ID:</label><br>
+                                <input type="id" name="id" placeholder="2" required><br><br>
+                                <label for="perms">Permissions (0 or 1):</label><br>
+                                <input type="number" name="perms" min="0" max="1" placeholder="1" required><br><br>
+                                <button type="submit" name="edit_perms">Edit User Perms</button>
+                        </form>
+
+                </div>
+
+                </div> <!--mycontainer-->
+
+            </div>
+            <?php
+        }
+        ?>
+
+        <h2>Dashboard</h2>
+            
+
+
+        <?php
+
 //Debugging output
 //echo '<pre style="">';
 //print_r($_SESSION);
 //echo '</pre>';
-	
-	$perms = $_SESSION['perms'];
 
-	// Fetch users from the database
-	$stmt = $pdo->query('SELECT * FROM users');
+        $perms = $_SESSION['perms'];
 
-	// Check if there are any results
-	if ($stmt->rowCount() > 0) {
-	
-		// Output table header
-		echo "<table border='1' cellpadding='8' cellspacing='0' style='width:60%;border-collapse: collapse;'>";
-		echo "<thead><tr><th>ID</th><th>Email</th>";
+        // Fetch users from the database
+        $stmt = $pdo->query('SELECT * FROM users');
 
-		// Show password and perms columns only if logged-in user has perms 0
-		if ($perms === 0) {
-			echo "<th>Password (Hashed)</th><th>Perms</th>";
-		}
+        // Check if there are any results
+        if ($stmt->rowCount() > 0) {
 
-		echo "</tr></thead>";
-		echo "<tbody>";
+                // Output table header
+                echo "<table border='1' cellpadding='8' cellspacing='0' style='width:60%;border-collapse: collapse;'>";
+                echo "<thead><tr><th>ID</th><th>Email</th><th>Username</th>";
 
-		// Loop through the results and output each row
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			echo "<tr>";
-			echo "<td>{$row['id']}</td>";
-			echo "<td>{$row['email']}</td>";
+                // Show password and perms columns only if logged-in user has perms 0
+                if ($perms === 0) {
+                        echo "<th>Password (Hashed)</th><th>Perms</th>";
+                }
 
-			// Show password and perms only if logged-in user has perms 0
-			if ($perms === 0) {
-			echo "<td>{$row['password']}</td>";
-			echo "<td>{$row['perms']}</td>";
-			}
+                echo "</tr></thead>";
+                echo "<tbody>";
 
-			echo "</tr>";
-		}
+                // Loop through the results and output each row
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        echo "<tr>";
+                        echo "<td>{$row['id']}</td>";
+                        echo "<td>{$row['email']}</td>";
+                        echo "<td>{$row['username']}</td>";
 
-		echo "</tbody></table>";
-	} else {
-		echo "No users found.";
-	}
-	
-	
-	
-	?>
+                        // Show password and perms only if logged-in user has perms 0
+                        if ($perms === 0) {
+                        echo "<td>{$row['password']}</td>";
+                        echo "<td>{$row['perms']}</td>";
+                        }
 
-	<script>
-		function confirmLogout() {
-			if (confirm("Are you sure you want to log out?")) {
-				window.location.href = "logout.php";
-			}
-		}
-	</script>
+                        echo "</tr>";
+                }
+
+                echo "</tbody></table>";
+        } else {
+                echo "No users found.";
+        }
+
+
+
+        ?>
+
+        <script>
+                function confirmLogout() {
+                        if (confirm("Are you sure you want to log out?")) {
+                                window.location.href = "logout.php";
+                        }
+                }
+        </script>
 
 </body>
 </html>
