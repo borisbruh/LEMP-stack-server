@@ -1,7 +1,7 @@
 <?php	//index.php	just to see if everything works
 
 $host = 'localhost';
-$db   = 'test_database';	//name of the sql db
+$db   = 'acc_db';	//name of the sql db
 $user = 'user';			//name of sql db user that has perms to acces the db
 $pass = 'passw0rd';)		//password for the user
 $charset = 'utf8mb4';
