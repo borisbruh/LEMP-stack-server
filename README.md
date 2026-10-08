@@ -46,7 +46,8 @@ for the other 2 you can just copy the follow example of both identical files for
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    
+
+    #this is the directory which nginx will try to serve pages from
     root /var/www/html;
 
     # Add index.php to the list if you are using PHP
@@ -72,7 +73,9 @@ server {
 ```
 mostly the default with a few small additions
 
-and that should be nginx ready to go
+pay attention to the line "root /var/www/html;", this is the directory which nginx will try to serve pages from, keep it in mind for later.
+
+that should be nginx ready to go
 
 you can just check if the syntax is all good:
 ```bash
@@ -197,4 +200,25 @@ now the chat db is created and is ready to store chat
 
 
 
-WIP
+- - -
+
+## Final Step
+
+final step now is to git clone this repo:
+
+change to the directory which nginx serves the pages (should be the same as in the "default" files above)
+```bash
+cd /var/www/html
+```
+
+then clone the repo:
+```bash
+git clone https://github.com/borisbruh/LEMP-stack-server.git
+```
+
+
+- - -
+
+#thats it
+
+if u followed all the instructions correct u should now have a working LEMP stack mvc in php
