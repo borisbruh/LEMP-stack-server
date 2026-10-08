@@ -2,11 +2,11 @@
 
 Linux, nginx, MariaDB/Mysql, php stack server.
 
-This repo has the php code for a full registering and login system with password hashing before storing and a dashboard when loged in.
+This repo has php code for a full registering and login system with password hashing before storing and a dashboard with a live global chat when logged in.
 
 Almost a MVC in straight php.
 
-Also a sqlinj.php page which sql injection can occur, aka how you definitly don twanna code a login page.
+Also a sqlinj.php page which sql injection can occur, aka how you definitely dont wanna code a login page.
 
 
 
@@ -78,7 +78,7 @@ now we will create the second db for all the chats so log back in as sudo:
 ```sql
 CREATE DATABASE chat     CHARACTER SET utf8mb4     COLLATE utf8mb4_unicode_ci;
 ```
-and also give perms to "user" to that db similarly as above and you can exit the mysql terminal
+and also give perms to "user" to that db and flush perms similarly as above and you can exit the mysql terminal
 
 then we will log back in as "user" and create the table:
 ```sql
