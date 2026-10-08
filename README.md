@@ -20,12 +20,27 @@ Also a sqlinj.php page which sql injection can occur, aka how you definitely don
 
 # Get Started
 
-a few things first:
-you will need sudo (or the necessary/required perms to do everything)
-this is for an ubuntu machine so some cmds like "apt" and package names like "mysql-server" may differ on your distro
-note that all of the following is for a http only server
-if u have apache/apache2 already on your machine, it may help to disable apache
-if u have issues or get stuck, consult a LLM, i recommend https://duck.ai , AI helped myself a lot
+## Quick Prereqs:
+- you will need sudo (or the necessary/required perms to do everything)
+- this is for an ubuntu machine so some cmds like "apt" and package names like "mysql-server" may differ on your distro
+- note that all of the following is for a http only server
+- if u have apache/apache2 already on your machine, it may help to disable apache
+- if u have issues or get stuck, consult a LLM, i recommend https://duck.ai , AI helped myself a lot
+
+## SECURITY WARNING
+- This is a learning/demo stack
+- Do not use the same app credentials everywhere (or the ones here for prod)
+- Never keep DB passwords in plain text in a repo
+- Don’t leave SQL injection examples exposed in production
+
+## Common Issues
+wrong PHP-FPM socket version
+MySQL user/password not created
+nginx config not reloaded
+database permissions not granted
+default site enabled/disabled mismatch
+
+- - -
 
 ### Setting up Nginx
 u will need to set up nginx and the configuration files for it which should be at this directory:
@@ -126,6 +141,11 @@ sudo apt-get install mysql-server        //package name may vary
 ```
 
 now we will setup the mysql db:
+
+first do:
+```bash
+mysql_secure_installation
+```
 
 using sudo, go to the mysql terminal via:
 ```bash
