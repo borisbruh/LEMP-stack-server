@@ -119,7 +119,7 @@ now php should be ready
 
 get mysql:
 ```bash
-sudo apt-get install mysql-server
+sudo apt-get install mysql-server        //package name may vary
 ```
 
 now we will setup the mysql db:
@@ -127,6 +127,11 @@ now we will setup the mysql db:
 using sudo, go to the mysql terminal via:
 ```bash
 sudo mysql
+```
+
+we will first create a new user called "user":
+```sql
+CREATE USER 'user'@'localhost' IDENTIFIED BY 'passw0rd';
 ```
 
 create db called "db":
