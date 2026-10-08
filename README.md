@@ -20,15 +20,106 @@ Also a sqlinj.php page which sql injection can occur, aka how you definitely don
 
 # Get Started
 
-u will need to setup nginx and the conf file for it which should be at:
+a few things first:
+you will need sudo (or the necessary/required perms to do everything)
+this is for an ubuntu machine so some cmds like "apt" and package names like "mysql-server" may differ on your distro
+note that all of the following is for a http only server
+if u have apache/apache2 already on your machine, it may help to disable apache
+if u have issues or get stuck, consult a LLM, i recommend https://duck.ai , AI helped myself a lot
+
+### Setting up Nginx
+u will need to set up nginx and the configuration files for it which should be at this directory:
 ```text
 /etc/nginx/
 ```
 
-- - -
-### Setting up the mysql databases
+you will need to get the default nginx page working before continuing, there are many good yt vids to help you with that and many more places where it can describe how to setup and nginx server way better than i can. https://nginx.org/en/docs/
 
-u will also need to setup the mysql db:
+
+the 3 files that are important are:
+nginx.conf, sites-enable/default and sites-available/default
+
+in here the file "nginx.conf" is the same as default, so no need to change it
+
+for the other 2 you can just copy the follow example of both identical files for /etc/nginx/sites-enabled/default and /etc/nginx/sites-available/default:
+```text
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    
+    root /var/www/html;
+
+    # Add index.php to the list if you are using PHP
+    index index.html index.htm index.nginx-debian.html index.php;
+
+    server_name _;
+
+    location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        try_files $uri $uri/ =404;
+    }
+
+    # pass PHP scripts to FastCGI server
+    #
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+
+        # With php-fpm (or other unix sockets):
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+}
+```
+mostly the default with a few small additions
+
+and that should be nginx ready to go
+
+you can just check if the syntax is all good:
+```bash
+sudo nginx -t
+```
+
+and reload nginx via:
+```bash
+sudo systemctl reload nginx
+```
+
+
+
+
+
+
+
+- - -
+
+### Setting up PHP
+
+get php, version being used here is php8.3, your version may different just change the number for the cmds:
+```bash
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+- - -
+
+### Setting up the MySQL databases
+
+get mysql:
+```bash
+sudo apt-get install mysql-server
+```
+
+now we will setup the mysql db:
 
 using sudo, go to the mysql terminal via:
 ```bash
@@ -94,4 +185,8 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci;
 ```
-now the chat db is made and is ready
+now the chat db is created and is ready to store chat
+
+
+
+WIP
