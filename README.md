@@ -96,12 +96,15 @@ sudo systemctl reload nginx
 
 get php, version being used here is php8.3, your version may different just change the number for the cmds:
 ```bash
-
+sudo apt-get install php
 ```
 
+and you will also need php-fpm to so nginx gives php files to php to run cause nginx cant run them:
+```bash
+sudo apt install php-fpm php-mysql
+```
 
-
-
+now php should be ready
 
 
 
