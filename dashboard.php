@@ -81,8 +81,8 @@ $id = $_SESSION['id'];
         // Assuming $perms is set to the logged-in user's permission level
         $loggedInUserPerms = $_SESSION['perms'];  // Adjust this based on how your session works
 
-        if ($loggedInUserPerms != 0) {
-            // If the user doesn't have perms == 0, hide the admin panel
+        if ($loggedInUserPerms != 1) {
+            // If the user doesn't have perms == 1, hide the admin panel
             echo '<div style="position: absolute; right: 32px; top: 50%;">You do not have permission to view the admin panel.</div>';
         } else {
             // Admin Panel visible to users with perms == 0
@@ -241,9 +241,9 @@ $id = $_SESSION['id'];
                 echo "<table border='1' cellpadding='8' cellspacing='0' style='width:60%;border-collapse: collapse;'>";
                 echo "<thead><tr><th>ID</th><th>Email</th><th>Username</th>";
 
-                // Show password and perms columns only if logged-in user has perms 0
-                if ($perms === 0) {
-                        echo "<th>Password (Hashed)</th><th>Perms</th>";
+                // Show perms columns only if logged-in user has perms 1
+                if ($perms === 1) {
+                        echo "<th>Perms</th>";
                 }
 
                 echo "</tr></thead>";
@@ -257,8 +257,7 @@ $id = $_SESSION['id'];
                         echo "<td>{$row['username']}</td>";
 
                         // Show password and perms only if logged-in user has perms 0
-                        if ($perms === 0) {
-                        echo "<td>{$row['password']}</td>";
+                        if ($perms === 1) {
                         echo "<td>{$row['perms']}</td>";
                         }
 
@@ -267,12 +266,44 @@ $id = $_SESSION['id'];
 
                 echo "</tbody></table>";
         } else {
-                echo "No users found.";
+                echo "No users found. (how tf did u log in?)";
         }
 
 
 
         ?>
+
+        <!-- Chat -->
+<div id="chat-box">
+
+    <div id="chat-header">
+        Chat
+    </div>
+
+    <div id="chat-messages">
+        <div class="chat-loading">
+            Loading messages...
+        </div>
+    </div>
+
+    <form id="chat-form">
+        <input
+            type="text"
+            id="chat-input"
+            name="message"
+            maxlength="128"
+            autocomplete="off"
+            placeholder="Type a message..."
+            required
+        >
+
+        <button type="submit">Send</button>
+    </form>
+
+    <div id="chat-error"></div>
+
+</div>
+
 
         <script>
                 function confirmLogout() {
@@ -280,6 +311,262 @@ $id = $_SESSION['id'];
                                 window.location.href = "logout.php";
                         }
                 }
+
+
+let lastMessageId = 0;
+let chatLoading = false;
+
+
+// --------------------------------------------------
+// Escape HTML
+// --------------------------------------------------
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+
+// --------------------------------------------------
+// Add message to chat
+// --------------------------------------------------
+
+function addChatMessage(message, scroll = true) {
+
+    const container = document.getElementById('chat-messages');
+
+    const div = document.createElement('div');
+
+    div.className = 'chat-message';
+
+    const username = escapeHtml(message.user);
+    const text = escapeHtml(message.message);
+
+    const time = new Date(
+        message.time.replace(' ', 'T')
+    );
+
+    let timeText = '';
+
+    if (!isNaN(time.getTime())) {
+        timeText = time.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    div.innerHTML =
+        '<span class="chat-username">' +
+        username +
+        ':</span> ' +
+        '<span class="chat-text">' +
+        text +
+        '</span>' +
+        '<span class="chat-time">' +
+        timeText +
+        '</span>';
+
+    container.appendChild(div);
+
+    if (scroll) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+
+// --------------------------------------------------
+// Load initial 10 messages
+// --------------------------------------------------
+
+async function loadInitialMessages() {
+
+    try {
+
+        const response = await fetch('chat_api.php');
+
+        if (!response.ok) {
+            throw new Error('Failed to load chat.');
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to load chat.');
+        }
+
+        const container = document.getElementById('chat-messages');
+
+        container.innerHTML = '';
+
+        data.messages.forEach(message => {
+
+            addChatMessage(message, false);
+
+            if (Number(message.msgid) > lastMessageId) {
+                lastMessageId = Number(message.msgid);
+            }
+
+        });
+
+        container.scrollTop = container.scrollHeight;
+
+    } catch (error) {
+
+        document.getElementById('chat-messages').innerHTML =
+            '<div class="chat-loading">' +
+            'Unable to load chat.' +
+            '</div>';
+
+        console.error(error);
+    }
+}
+
+
+// --------------------------------------------------
+// Check for new messages
+// --------------------------------------------------
+
+async function checkForNewMessages() {
+
+    if (chatLoading) {
+        return;
+    }
+
+    chatLoading = true;
+
+    try {
+
+        const response = await fetch(
+            'chat_api.php?after=' + encodeURIComponent(lastMessageId),
+            {
+                cache: 'no-store'
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Failed to check chat.');
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to check chat.');
+        }
+
+        data.messages.forEach(message => {
+
+            addChatMessage(message, true);
+
+            if (Number(message.msgid) > lastMessageId) {
+                lastMessageId = Number(message.msgid);
+            }
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+    } finally {
+
+        chatLoading = false;
+
+    }
+}
+
+
+// --------------------------------------------------
+// Send message
+// --------------------------------------------------
+
+document.getElementById('chat-form').addEventListener(
+    'submit',
+    async function(event) {
+
+        event.preventDefault();
+
+        const input = document.getElementById('chat-input');
+        const errorBox = document.getElementById('chat-error');
+
+        const message = input.value;
+
+        errorBox.textContent = '';
+
+        if (message.length === 0) {
+            return;
+        }
+
+        if (message.length > 128) {
+            errorBox.textContent =
+                'Message must be 128 characters or fewer.';
+
+            return;
+        }
+
+        // Client-side validation.
+        // Server validates it again.
+        if (!/^[0-9A-Za-z .,!?]+$/.test(message)) {
+
+            errorBox.textContent =
+                'Only numbers, letters, spaces, periods, commas, ! and ? are allowed.';
+
+            return;
+        }
+
+        try {
+
+            const formData = new FormData();
+
+            formData.append('message', message);
+
+            const response = await fetch(
+                'chat_api.php',
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+
+                errorBox.textContent =
+                    data.error || 'Failed to send message.';
+
+                return;
+            }
+
+            input.value = '';
+
+            // Immediately check for the newly inserted message.
+            await checkForNewMessages();
+
+            input.focus();
+
+        } catch (error) {
+
+            console.error(error);
+
+            errorBox.textContent =
+                'Could not send message.';
+        }
+    }
+);
+
+
+// --------------------------------------------------
+// Start chat
+// --------------------------------------------------
+
+loadInitialMessages();
+
+// Check for new messages every 2 seconds.
+setInterval(checkForNewMessages, 2000);
+
+
+
         </script>
 
 </body>
