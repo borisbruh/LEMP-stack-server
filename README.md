@@ -34,27 +34,31 @@ Also a sqlinj.php page which sql injection can occur, aka how you definitely don
 - Don’t leave SQL injection examples exposed in production
 
 ## Common Issues
-wrong PHP-FPM socket version
-MySQL user/password not created
-nginx config not reloaded
-database permissions not granted
-default site enabled/disabled mismatch
+- wrong PHP-FPM socket version
+- MySQL user/password not created
+- nginx config not reloaded
+- database permissions not granted
+- default site enabled/disabled mismatch
 
 - - -
 
 ### Setting up Nginx
+
+you will need to get the default nginx page working at this point, there are many good yt vids to help you with that and many other places which can describe how to setup and nginx server way better than i can.
+
+https://nginx.org/en/docs/
+
 u will need to set up nginx and the configuration files for it which should be at this directory:
 ```text
 /etc/nginx/
 ```
 
-you will need to get the default nginx page working before continuing, there are many good yt vids to help you with that and many more places where it can describe how to setup and nginx server way better than i can. https://nginx.org/en/docs/
-
-
 the 3 files that are important are:
-nginx.conf, sites-enable/default and sites-available/default
+- nginx.conf
+- sites-enable/default
+- sites-available/default
 
-in here the file "nginx.conf" is the same as default, so no need to change it
+the file "nginx.conf" needs no change
 
 for the other 2 you can just copy the follow example of both identical files for /etc/nginx/sites-enabled/default and /etc/nginx/sites-available/default:
 ```text
