@@ -2,7 +2,7 @@
 
 Linux, nginx, MariaDB/Mysql, php stack server.
 
-This repo has php code for a full registering and login system with password hashing before storing and a dashboard with a live global chat when logged in.
+This repo has php code for a full registering and login system with password hashing before storing and a dashboard with a live global chat and CRUD panel for admins.
 
 Almost a MVC in straight php.
 
@@ -191,18 +191,21 @@ mysql -u user -p db
 now logged in as "user" you can create the table "users":
 ```sql
 CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(64) NOT NULL,
-  email VARCHAR(128) NOT NULL,
-  hash VARCHAR(256) NOT NULL,
-  perms INT NOT NULL DEFAULT 0
-);
+  id int NOT NULL AUTO_INCREMENT,
+  username varchar(64) NOT NULL,
+  email varchar(128) NOT NULL UNIQUE,
+  password varchar(256) NOT NULL,
+  perms int NOT NULL DEFAULT 0,
+  full_name varchar(150) DEFAULT NULL,
+  contact_details varchar(256) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 ```
 now the db is ready to take new acc registrations and you can exit the terminal now
 
 now we will create the second db for all the chats so log back in as sudo:
 ```sql
-CREATE DATABASE chat     CHARACTER SET utf8mb4     COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE chat     CHARACTER SET utf8mb4     COLLATE=utf8mb4_0900_ai_ci;
 ```
 and also give perms to "user" to that db and flush perms similarly as above and you can exit the mysql terminal
 
@@ -218,7 +221,7 @@ CREATE TABLE messages (
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_unicode_ci;
+COLLATE=utf8mb4_0900_ai_ci;
 ```
 now the chat db is created and is ready to store chat
 
