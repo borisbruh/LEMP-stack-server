@@ -72,9 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         // --- Redirect to pages ---
                         // Check perms of logged in user
-                        if ($perms = 10) {
+                        if ($perms === 10) {
                             // If admin, redirect to the dashboard page
                             header("Location: dashboard.php");
+                            exit; // Stop further script execution
+                        } elseif ($oerms === 2) {
+                            // if user w/ perms = 2
+                            header("Location: list.php");
                             exit; // Stop further script execution
                         } else {
                             // else, bring user to user page
