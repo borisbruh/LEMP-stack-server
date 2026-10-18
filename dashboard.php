@@ -92,10 +92,12 @@ $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
                         $email = $_POST['email'];
                         $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
                         $perms_post = $_POST['perms'];
-                        $stmt = $pdo->prepare("INSERT INTO users (username, email, password, perms) VALUES (?, ?, ?, ?)");
+                        $full_name = $_POST['full_name'];
+                        $contact_details = $_POST['contact_details'];
+                        $stmt = $pdo->prepare("INSERT INTO users (username, email, password, perms, full_name, contact_details) VALUES (?, ?, ?, ?, ?, ?)");
                         if ((!filter_var($email, FILTER_VALIDATE_EMAIL))) {
                                 echo "<p style='color: red;'>Invalid email format, new user not added.";
-                        } elseif ($stmt->execute([$username, $email, $password, $perms_post])) {
+                        } elseif ($stmt->execute([$username, $email, $password, $perms_post, $full_name, $contact_details])) {
                                 echo "<p style='color: green;'>User added successfully!</p>";
                         } else {
                                 echo "<p style='color: red;'>Failed to add user.</p>";
@@ -119,23 +121,30 @@ $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
                         }
                     }
 
-                    if (isset($_POST['edit_perms'])) {
-                        $user_id = $_POST['id'];
-                        $new_perms = $_POST['perms'];
-
-                        if ($user_id == $id) {
-                                echo "<p style='color: red;'>Cannot edit your own account ID: {$user_id}. Permissions not updated.</p>";
+                    if (isset($_POST['edit'])) {
+                        $userId = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+                        $column = $_POST['column'] ?? '';
+                        $newValue = $_POST['value'] ?? '';
+                    
+                        // Only allow columns you intend users to edit.
+                        $allowedColumns = ['username', 'email', 'full_name', 'contact_details', 'perms'];
+                    
+                        if (!$userId || !in_array($column, $allowedColumns, true)) {
+                            echo "<p style='color: red;'>Invalid user ID or column.</p>";
+                        } elseif ($userId == $id) {
+                            echo "<p style='color: red;'>Cannot edit your own account.</p>";
                         } else {
-                                $stmt = $pdo->prepare("UPDATE users SET perms = ? WHERE id = ?");
-                                $stmt->execute([$new_perms, $user_id]);
-
-                                if ($stmt->rowCount() > 0) {
-                                        echo "<p style='color: green;'>Permissions updated successfully!</p>";
-                                } else {
-                                        echo "<p style='color: red;'>No user found with ID: {$user_id}. Permissions not updated.</p>";
-                                }
+                            $stmt = $pdo->prepare("UPDATE users SET `$column` = ? WHERE id = ?");
+                            $stmt->execute([$newValue, $userId]);
+                    
+                            if ($stmt->rowCount() > 0) {
+                                echo "<p style='color: green;'>User updated successfully.</p>";
+                            } else {
+                                echo "<p style='color: red;'>No row was changed. The user may not exist, or the value may already be the same.</p>";
+                            }
                         }
                     }
+
                 }
                 ?>
 
@@ -148,12 +157,22 @@ $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
                         <form method="POST">
                                 <label for="username">Username:</label><br>
                                 <input type="text" name="username" placeholder="user2" required><br><br>
+                            
                                 <label for="email">Email:</label><br>
                                 <input type="email" name="email" placeholder="user@example.com" required><br><br>
+                            
                                 <label for="password">Password:</label><br>
                                 <input type="password" name="password" placeholder="passw0rd" required><br><br>
-                                <label for="perms">Permissions (10 or other):</label><br>
-                                <input type="number" name="perms" min="0" placeholder="10" required><br><br>
+                            
+                                <label for="perms">Permissions (0-10):</label><br>
+                                <input type="number" name="perms" min="0" max="10" placeholder="0" required><br><br>
+
+                                <label for="full_name">Full Name:</label><br>
+                                <input type="text" name="full_name" placeholder="John Smith" required><br><br>
+
+                                <label for="contact_details">Contact Details:</label><br>
+                                <input type="text" name="contact_details" placeholder="098 765 4321" required><br><br>
+                            
                                 <button type="submit" name="add_user">Add User</button>
                         </form>
 
@@ -173,15 +192,60 @@ $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
 
                 <div>
 
-                        <h4>Edit User Perms</h4>
+                <h4>Edit User</h4>
+                
+                <form method="POST">
+                    <label for="id">User ID:</label><br>
+                    <input type="number" name="id" id="id" min="1" max="999999" placeholder="2" required><br><br>
+                
+                    <label for="column">Column to edit:</label><br>
+                    <select name="column" id="column" required>
+                        <option value="username">Username</option>
+                        <option value="email">Email</option>
+                        <option value="full_name">Full name</option>
+                        <option value="contact_details">Contact details</option>
+                        <option value="perms">Permissions</option>
+                    </select><br><br>
+                
+                    <label for="value" id="valueLabel">New value:</label><br>
+                    <input type="text" name="value" id="value" maxlength="64" required><br><br>
+                
+                    <button type="submit" name="edit">Edit User</button>
+                </form>
+                
+                <script>
+                const columnSelect = document.getElementById('column');
+                const valueInput = document.getElementById('value');
+                const valueLabel = document.getElementById('valueLabel');
+                
+                function updateValueInput() {
+                    const settings = {
+                        username:          { type: 'text',  maxLength: 64 },
+                        email:              { type: 'email', maxLength: 128 },
+                        full_name:          { type: 'text',  maxLength: 150 },
+                        contact_details:    { type: 'text',  maxLength: 256 },
+                        perms:              { type: 'number', min: 0, max: 10 }
+                    };
+                
+                    const setting = settings[columnSelect.value];
+                
+                    valueInput.type = setting.type;
+                    valueInput.removeAttribute('maxlength');
+                    valueInput.removeAttribute('min');
+                    valueInput.removeAttribute('max');
+                
+                    if (setting.maxLength) valueInput.maxLength = setting.maxLength;
+                    if (setting.min !== undefined) valueInput.min = setting.min;
+                    if (setting.max !== undefined) valueInput.max = setting.max;
+                
+                    valueLabel.textContent =
+                        columnSelect.value === 'perms' ? 'New permissions value:' : 'New value:';
+                }
+                
+                columnSelect.addEventListener('change', updateValueInput);
+                updateValueInput();
+                </script>
 
-                        <form method="POST">
-                                <label for="id">ID:</label><br>
-                                <input type="id" name="id" placeholder="2" required><br><br>
-                                <label for="perms">Permissions (10 or other):</label><br>
-                                <input type="number" name="perms" min="0" placeholder="10" required><br><br>
-                                <button type="submit" name="edit_perms">Edit User Perms</button>
-                        </form>
 
                 </div>
 
@@ -205,6 +269,8 @@ $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
                         echo "<th>Perms</th>";
                 }
 
+                echo "<th>Full name</th><th>Contact Details</th>";
+
                 echo "</tr></thead>";
                 echo "<tbody>";
 
@@ -217,7 +283,10 @@ $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
                         if ($perms === 10) {
                         echo "<td>{$row['perms']}</td>";
                         }
-
+                        
+                        echo "<td>{$row['full_name']}</td>";
+                        echo "<td>{$row['contact_details']}</td>";
+                    
                         echo "</tr>";
                 }
 
@@ -414,7 +483,7 @@ $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
 
                 if (document.getElementById('chat-messages')) {
                     loadInitialMessages();
-                    setInterval(checkForNewMessages, 2000);
+                    setInterval(checkForNewMessages, 20000);
                 }
         </script>
 
