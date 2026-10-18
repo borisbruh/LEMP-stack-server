@@ -70,10 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['logged_in'] = true;                  // Set login status to true
                         $_SESSION['perms'] = $perms['perms'];           // Store user perms in session
 
-                        // --- Redirect to dashboard ---
-                        header("Location: dashboard.php");
-                        exit; // Making sure to exit after the redirect to stop further execution
-
+                        // --- Redirect to pages ---
+                        // Check perms of logged in user
+                        if ($perms = 10) {
+                            // If admin, redirect to the dashboard page
+                            header("Location: dashboard.php");
+                            exit; // Stop further script execution
+                        } else {
+                            // else, bring user to user page
+                            header("Location: user.php");
+                            exit; // Making sure to exit after the redirect to stop further execution
+                        }
                 } else {
 
                         $message = "Invalid email or password";
