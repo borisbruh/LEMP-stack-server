@@ -39,6 +39,14 @@ $username = $_SESSION['username'];
 $email = $_SESSION['email'];
 $id = $_SESSION['id'];
 $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
+
+
+// Check perms of logged in user
+if ($perms != 10) {
+    // If not admin, redirect to the user page
+    header("Location: user.php");
+    exit; // Stop further script execution
+}
 ?>
 
 <!DOCTYPE html>
