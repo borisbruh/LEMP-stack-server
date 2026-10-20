@@ -81,12 +81,18 @@ server {
     }
 
     # pass PHP scripts to FastCGI server
-    #
+    
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
 
         # With php-fpm (or other unix sockets):
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        #fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+
+    # hide hidden files
+
+    location ~ /\. {
+       deny all;
     }
 }
 ```
@@ -246,6 +252,7 @@ git clone https://github.com/borisbruh/LEMP-stack-server.git
 
 - - -
 
-#thats it
+# thats it
 
-if u followed all the instructions correct u should now have a working LEMP stack mvc in php
+if u followed all the instructions correctly u should now have a working LEMP stack mvc in php
+type shit
