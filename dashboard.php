@@ -40,13 +40,15 @@ $email = $_SESSION['email'];
 $id = $_SESSION['id'];
 $perms = isset($_SESSION['perms']) ? (int)$_SESSION['perms'] : 0;
 
-
+//how to send the user to a different page based on permissions:
 // Check perms of logged in user
-if ($perms !=== 10) {
-    // If not admin, redirect to the user page
+/*
+if ($perms != 1) {
+    // If not admin(1_, redirect to the user page
     header("Location: user.php");
     exit; // Stop further script execution
 }
+*/
 ?>
 
 <!DOCTYPE html>
@@ -85,7 +87,7 @@ if ($perms !=== 10) {
 
         <!-- Displaying the Admin Panel -->
         <?php
-        if ($perms !== 10) {
+        if ($perms != 1) {
             echo '<div style="position: absolute; right: 32px; top: 50%;">You do not have permission to view the admin panel.</div>';
         } else {
         ?>
@@ -273,7 +275,7 @@ if ($perms !=== 10) {
                 echo "<table border='1' cellpadding='8' cellspacing='0' style='width:60%;border-collapse: collapse;'>";
                 echo "<thead><tr><th>ID</th><th>Email</th><th>Username</th>";
 
-                if ($perms === 10) {
+                if ($perms == 1) {
                         echo "<th>Perms</th>";
                 }
 
@@ -304,7 +306,7 @@ if ($perms !=== 10) {
         }
         ?>
 
-        <?php if ($perms === 10): ?>
+        <?php if ($perms == 1): ?>
         <div id="chat-box">
 
             <div id="chat-header">
